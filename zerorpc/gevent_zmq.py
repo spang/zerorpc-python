@@ -111,7 +111,7 @@ class Socket(_zmq.Socket):
                 # send and recv on the socket.
                 self._on_state_changed()
                 return msg
-            except _zmq.ZMQError, e:
+            except _zmq.ZMQError as e:
                 if e.errno not in (_zmq.EAGAIN, errno.EINTR):
                     raise
             self._writable.clear()
@@ -125,8 +125,8 @@ class Socket(_zmq.Socket):
             gevent.sleep(0)
             while not self._writable.wait(timeout=1):
                 if self.getsockopt(_zmq.EVENTS) & _zmq.POLLOUT:
-                    print>>sys.stderr, "/!\\ gevent_zeromq BUG /!\\ " \
-                        "catching up after missing event (SEND) /!\\"
+                    print("/!\\ gevent_zeromq BUG /!\\ " \
+                        "catching up after missing event (SEND) /!\\", file=sys.stderr)
                     break
 
     def recv(self, flags=0, copy=True, track=False):
@@ -147,7 +147,7 @@ class Socket(_zmq.Socket):
                 # send and recv on the socket.
                 self._on_state_changed()
                 return msg
-            except _zmq.ZMQError, e:
+            except _zmq.ZMQError as e:
                 if e.errno not in (_zmq.EAGAIN, errno.EINTR):
                     raise
             self._readable.clear()
@@ -161,6 +161,6 @@ class Socket(_zmq.Socket):
             gevent.sleep(0)
             while not self._readable.wait(timeout=1):
                 if self.getsockopt(_zmq.EVENTS) & _zmq.POLLIN:
-                    print>>sys.stderr, "/!\\ gevent_zeromq BUG /!\\ " \
-                        "catching up after missing event (RECV) /!\\"
+                    print("/!\\ gevent_zeromq BUG /!\\ " \
+                        "catching up after missing event (RECV) /!\\", file=sys.stderr)
                     break

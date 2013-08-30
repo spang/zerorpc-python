@@ -31,7 +31,7 @@ import gevent.local
 import gevent.coros
 
 
-import gevent_zmq as zmq
+from . import gevent_zmq as zmq
 from .context import Context
 
 
@@ -52,7 +52,7 @@ class Sender(object):
     def _sender(self):
         running = True
         for parts in self._send_queue:
-            for i in xrange(len(parts) - 1):
+            for i in range(len(parts) - 1):
                 try:
                     self._socket.send(parts[i], flags=zmq.SNDMORE)
                 except gevent.GreenletExit:
@@ -228,7 +228,7 @@ class Events(object):
 
     def create_event(self, name, args, xheader={}):
         event = Event(name, args, context=self._context)
-        for k, v in xheader.items():
+        for k, v in list(xheader.items()):
             if k == 'zmqid':
                 continue
             event.header[k] = v

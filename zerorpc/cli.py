@@ -32,6 +32,7 @@ import os
 from pprint import pprint
 
 import zerorpc
+import collections
 
 
 parser = argparse.ArgumentParser(
@@ -82,7 +83,7 @@ parser.add_argument('params', nargs='*',
 def setup_links(args, socket):
     if args.bind:
         for endpoint in args.bind:
-            print 'binding to "{0}"'.format(endpoint)
+            print('binding to "{0}"'.format(endpoint))
             socket.bind(endpoint)
     addresses = []
     if args.address:
@@ -90,7 +91,7 @@ def setup_links(args, socket):
     if args.connect:
         addresses.extend(args.connect)
     for endpoint in addresses:
-        print 'connecting to "{0}"'.format(endpoint)
+        print('connecting to "{0}"'.format(endpoint))
         socket.connect(endpoint)
 
 
@@ -105,12 +106,12 @@ def run_server(args):
     else:
         server_obj = __import__(server_obj_path)
 
-    if callable(server_obj):
+    if isinstance(server_obj, collections.Callable):
         server_obj = server_obj()
 
     server = zerorpc.Server(server_obj, heartbeat=args.heartbeat)
     setup_links(args, server)
-    print 'serving "{0}"'.format(server_obj_path)
+    print('serving "{0}"'.format(server_obj_path))
     return server.run()
 
 
@@ -177,7 +178,7 @@ def zerorpc_inspect_generic(remote_methods, filter_method, long_doc, include_arg
             doc = doc.splitlines()[0]
         return (name, doc)
 
-    methods = [format_method(name, details['args'], details['doc']) for name, details in remote_methods.items()
+    methods = [format_method(name, details['args'], details['doc']) for name, details in list(remote_methods.items())
             if filter_method is None or name == filter_method]
 
     longest_name_len = max(len(name) for name, doc in methods)
@@ -210,16 +211,16 @@ def run_client(args):
                 long_doc=False, include_argspec=args.inspect)
         if args.inspect:
             for (name, doc) in detailled_methods:
-                print name
+                print(name)
         else:
             for (name, doc) in detailled_methods:
-                print '{0} {1}'.format(name.ljust(longest_name_len), doc)
+                print('{0} {1}'.format(name.ljust(longest_name_len), doc))
         return
     if args.inspect:
         (longest_name_len, detailled_methods) = zerorpc_inspect(client,
                 method=args.command)
         (name, doc) = detailled_methods[0]
-        print '\n{0}\n\n{1}\n'.format(name, doc)
+        print('\n{0}\n\n{1}\n'.format(name, doc))
         return
     if args.json:
         call_args = [json.loads(x) for x in args.params]

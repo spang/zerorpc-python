@@ -31,14 +31,15 @@ import gevent.event
 import gevent.local
 import gevent.coros
 
-import gevent_zmq as zmq
+from . import gevent_zmq as zmq
 from .exceptions import TimeoutExpired, RemoteError, LostRemote
 from .channel import ChannelMultiplexer, BufferedChannel
 from .socket import SocketBase
 from .heartbeat import HeartBeatOnChannel
 from .context import Context
 from .decorators import DecoratorBase, rep
-import patterns
+from . import patterns
+import collections
 
 class ServerBase(object):
 
@@ -58,7 +59,7 @@ class ServerBase(object):
         self._inject_builtins()
         self._heartbeat_freq = heartbeat
 
-        for (k, functor) in self._methods.items():
+        for (k, functor) in list(self._methods.items()):
             if not isinstance(functor, DecoratorBase):
                 self._methods[k] = rep(functor)
 
@@ -70,7 +71,7 @@ class ServerBase(object):
                 k.startswith('_'))
         return dict((k, getattr(methods, k))
                 for k in dir(methods)
-                if callable(getattr(methods, k))
+                if isinstance(getattr(methods, k), collections.Callable)
                 and not k.startswith('_')
                 and getattr(methods, k) not in server_methods
                 )
@@ -93,11 +94,11 @@ class ServerBase(object):
         return r
 
     def _zerorpc_inspect(self):
-        methods = dict((m, f) for m, f in self._methods.items()
+        methods = dict((m, f) for m, f in list(self._methods.items())
                     if not m.startswith('_'))
         detailled_methods = dict((m,
             dict(args=self._format_args_spec(f._zerorpc_args()),
-                doc=f._zerorpc_doc())) for (m, f) in methods.items())
+                doc=f._zerorpc_doc())) for (m, f) in list(methods.items()))
         return {'name': self._name,
                 'methods': detailled_methods}
 
